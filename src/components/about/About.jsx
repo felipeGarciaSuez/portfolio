@@ -53,8 +53,7 @@ const About = () => {
             </article>
           </div>
           <p>
-            Lorem, ipsum dolor sit amet consectetur adipisicing elit. 
-            Fugiat error illum saepe molestias eligendi ab officiis recusandae quod maiores architecto.
+          I am a programmer who stands out for his responsibility and focus on the client's needs when doing a job. The soft skills that stands out the mostis problem solving and teamwork.
           </p>
           <a href="#contact" className="btn btn-primary">Let's Talk</a>
         </div>

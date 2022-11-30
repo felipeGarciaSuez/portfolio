@@ -1,6 +1,7 @@
 import React from 'react'
 import './Header.css'
 import CTA from './CTA'
+import emoji from "../../assets/emoji.png"
 import HeaderSosial from './HeaderSosial'
 
 const Header = () => {
@@ -19,7 +20,7 @@ const Header = () => {
         <CTA />
         <HeaderSosial />
         <div className="me">
-          <img scr="" alt="Feli"/>
+          <img scr={emoji} alt="Feli"/>
         </div>
         <a href="#contact" className='scroll__down'>Scroll Down</a>
         </section>
