@@ -1,9 +1,5 @@
 import pi from '../../assets/pi pic.jpg'
 import kemba from '../../assets/kemba.jpg'
-import Img3 from '../../assets/portfolio3.jpg'
-import Img4 from '../../assets/portfolio4.jpg'
-import Img5 from '../../assets/portfolio5.png'
-import Img6 from '../../assets/portfolio6.jpg'
 
 export const PortfolioData = [
     {
@@ -22,13 +18,13 @@ export const PortfolioData = [
     },
     {
         id : 3,
-        image: Img3,
+        image: "",
         title:'Rincon del ceibo',
         demo: 'https://dribbble.com/Alien_pixels'
     },
     {
         id : 4,
-        image: Img4,
+        image: "",
         title:'Miniello Revestimientos',
         demo: 'https://dribbble.com/Alien_pixels'
     }

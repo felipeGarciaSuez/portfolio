@@ -1,6 +1,6 @@
 import React from 'react'
 import CV_SPANISH from '../../assets/Felipe Garcia ESPAÑOL CV.pdf'
-import CV_SPANISH from '../../assets/Felipe Garcia ENGLISH CV.pdf'
+import CV_ENGLISH from '../../assets/Felipe Garcia ENGLISH CV.pdf'
 
 const CTA = () => {
   return (
