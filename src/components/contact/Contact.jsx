@@ -15,7 +15,7 @@ const contact = () => {
   const sendEmail = (e) => {
     e.preventDefault();
 
-    emailjs.sendForm('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', form.current, 'YOUR_PUBLIC_KEY')
+    emailjs.sendForm('service_7ijp8co', 'template_rszhlno', form.current, 'RpRSZ_e75XJv1vZQn')
       .then((result) => {
           console.log(result.text);
       }, (error) => {
@@ -45,7 +45,7 @@ const contact = () => {
             <h5>
               garciasuezfelipe@gmail.com
             </h5>
-            <a href="mailto:example@gmail.com" target="_blank" rel="noreferrer">Send a message</a>
+            <a href="mailto:garciasuezfelipe@gmail.com" target="_blank" rel="noreferrer">Send a message</a>
           </article>
           {/* <article className="contact__option">
             <RiMessengerLine className="contact__option-icon"/>

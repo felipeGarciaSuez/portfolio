@@ -1,5 +1,7 @@
 import pi from '../../assets/pi pic.jpg'
 import kemba from '../../assets/kemba.jpg'
+import miniello from "../../assets/minrevscreen.png"
+import rincon from "../../assets/rinconscreen.png"
 
 export const PortfolioData = [
     {
@@ -18,14 +20,14 @@ export const PortfolioData = [
     },
     {
         id : 3,
-        image: "",
-        title:'Rincon del ceibo',
-        demo: 'https://dribbble.com/Alien_pixels'
+        image: rincon,
+        title:'Rincon del ceibo (in progress)',
+        demo: '/'
     },
     {
         id : 4,
-        image: "",
+        image: miniello,
         title:'Miniello Revestimientos',
-        demo: 'https://dribbble.com/Alien_pixels'
+        demo: 'https://miniellorevestimientos.com'
     }
 ]
