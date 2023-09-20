@@ -48,12 +48,14 @@ const About = () => {
                 Knowledge
               </h5>
               <small>
-                Currently taking a technical course
+                Currently studying an Associate degree in programming
               </small>
             </article>
           </div>
           <p>
-          I am a programmer who stands out for his responsibility and focus on the client's needs when doing a job. The soft skills that stands out the mostis problem solving and teamwork.
+          I am a web developer currently working for Solvo. I started my career with JavaScrirpt, selling pages as a freelancer 
+          with technologies like React, Redux, Node, Sequelize and PostgreSQL. I have been working on dependency using Python for more than 5 months,
+           which allowed me to expand my knowledge as a programmer and enter the world of object-oriented programming.
           </p>
           <a href="#contact" className="btn btn-primary">Let's Talk</a>
         </div>
