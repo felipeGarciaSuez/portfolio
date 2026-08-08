@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+/*
+  Portfolio — sistema de diseño "instrumental".
+  Tema oscuro único y deliberado: la referencia es un panel de instrumentos,
+  no un documento. El acento cian señala dónde mirar; el verde queda reservado
+  en exclusiva para estado operativo real, así el semáforo del hero conserva
+  su significado.
+*/
+
+@theme {
+  /* Superficies — negro con sesgo azul, nunca negro puro */
+  --color-bg: #0b0f14;
+  --color-surface: #131b23;
+  --color-surface-2: #1a242e;
+  --color-line: #22303c;
+  --color-line-strong: #33444f;
+
+  /* Texto */
+  --color-ink: #e8eef4;
+  --color-ink-2: #a9bac7;
+  --color-ink-3: #738794;
+
+  /* Acento — cian instrumento */
+  --color-accent: #4fc3d6;
+  --color-accent-dim: #2c7d8c;
+  --color-accent-bg: #10262e;
+
+  /* Semánticos — solo estado, nunca decoración */
+  --color-ok: #3ecf8e;
+  --color-warn: #f0a030;
+  --color-crit: #ef6f61;
+
+  /* Tipografía */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "Cascadia Mono", monospace;
+
+  /* Escala tipográfica fluida */
+  --text-2xs: 0.6875rem;
+  --text-xs: 0.78rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.3rem;
+  --text-2xl: clamp(1.5rem, 1.3rem + 0.9vw, 2rem);
+  --text-3xl: clamp(1.9rem, 1.55rem + 1.6vw, 2.9rem);
+  --text-4xl: clamp(2.4rem, 1.7rem + 3.2vw, 4.5rem);
+
+  /* Ritmo */
+  --spacing-section: clamp(4.5rem, 10vw, 9rem);
+
+  /* Movimiento */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* El foco tiene que verse siempre: se navega con teclado. */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background: var(--color-accent);
+    color: var(--color-bg);
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+}
+
+@layer components {
+  /* Etiqueta monoespaciada: estados, stacks, métricas. */
+  .label {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-ink-3);
+  }
+
+  .rule {
+    border-color: var(--color-line);
+  }
+}
+
+/*
+  Accesibilidad: quien pidió menos movimiento no recibe ninguno.
+  Los elementos revelados por scroll ya nacen visibles vía :where(),
+  así que desactivar la animación nunca deja contenido invisible.
+*/
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
