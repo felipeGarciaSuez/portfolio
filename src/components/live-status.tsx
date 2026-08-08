@@ -58,9 +58,7 @@ export function LiveStatus({ dict }: { dict: Dictionary }) {
                 {state === "loading" && dict.hero.statusChecking}
                 {state === "failed" && "—"}
                 {state === "done" &&
-                  (result?.ok
-                    ? `${result.status} · ${result.ms} ms`
-                    : dict.hero.statusUnreachable)}
+                  (result?.ok ? result.status : dict.hero.statusUnreachable)}
               </span>
             </li>
           );

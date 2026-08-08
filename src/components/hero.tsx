@@ -20,12 +20,12 @@ export function Hero({ lang, dict }: { lang: Locale; dict: Dictionary }) {
 
       <div className="mx-auto grid w-full max-w-6xl gap-12 lg:grid-cols-[1.15fr_1fr] lg:items-center">
         <div>
-          <p className="label mb-6 flex flex-wrap items-center gap-x-3 gap-y-1">
-            <span className="inline-flex items-center gap-2">
-              <span className="size-1.5 rounded-full bg-ok" aria-hidden />
-              {site.availability[lang]}
-            </span>
-          </p>
+          {/*
+            Solo la ubicación. El punto verde no va acá: en este sitio el verde
+            significa "servicio operativo" y nada más, así que usarlo de adorno
+            le sacaría sentido al semáforo de la derecha.
+          */}
+          <p className="label mb-6">{site.location[lang]}</p>
 
           <h1 className="text-4xl font-semibold leading-[1.02] tracking-[-0.035em]">
             {site.name}

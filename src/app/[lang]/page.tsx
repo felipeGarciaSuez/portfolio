@@ -201,7 +201,7 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
       {/* ---------------- Contacto ---------------- */}
       <Section id="contacto" title={dict.contact.title}>
         <p className="max-w-2xl text-lg leading-relaxed text-ink-2">
-          {site.availabilityLong[locale]}
+          {site.contactLede[locale]}
         </p>
 
         <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

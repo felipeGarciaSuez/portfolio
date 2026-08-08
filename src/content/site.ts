@@ -16,15 +16,14 @@ export const site = {
     en: "Rosario, Santa Fe, Argentina",
   } satisfies Localized,
 
-  /** Estado de búsqueda laboral: remoto primero, híbrido posible en Rosario. */
-  availability: {
-    es: "Busco remoto · Híbrido posible en Rosario",
-    en: "Looking for remote · Open to hybrid in Rosario",
-  } satisfies Localized,
-
-  availabilityLong: {
-    es: "Estoy buscando posiciones backend en Python, principalmente en remoto. Vivo en Rosario, así que un esquema híbrido acá también es posible.",
-    en: "I'm looking for backend Python roles, primarily remote. I'm based in Rosario, so a hybrid setup here works too.",
+  /**
+   * Sin lenguaje de búsqueda activa: transmite necesidad y baja el poder de
+   * negociación. Quien contrata escribe igual, y la conversación arranca
+   * desde otro lugar.
+   */
+  contactLede: {
+    es: "Si querés hablar de un proyecto, de una posición o de algo técnico, escribime.",
+    en: "If you'd like to talk about a project, a role, or anything technical, get in touch.",
   } satisfies Localized,
 
   /** La frase del hero — opción C, elegida por Felipe. */
