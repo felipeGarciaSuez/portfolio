@@ -1,5 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { Dictionary } from "@/content/dictionaries";
+import { projectMedia } from "@/content/media";
 import type { Project } from "@/content/projects";
 import type { Locale } from "@/lib/i18n";
 import { ArrowRightIcon, ExternalIcon } from "./icons";
@@ -84,7 +86,7 @@ export function ProductionCard({
         </div>
 
         <div className="order-1 lg:order-2">
-          <MediaSlot project={project} />
+          <MediaSlot project={project} lang={lang} />
         </div>
       </div>
     </article>
@@ -151,23 +153,42 @@ function StatusPill({
 }
 
 /**
- * Marcador de captura. Mientras no existan las imágenes reales muestra un
- * placeholder honesto en vez de una imagen rota o un mockup inventado.
+ * Captura del proyecto. Si todavía no existe, muestra un marcador honesto
+ * en vez de una imagen rota o un mockup inventado.
  */
-function MediaSlot({ project }: { project: Project }) {
-  const isPhone = project.media?.frame === "phone";
+function MediaSlot({ project, lang }: { project: Project; lang: Locale }) {
+  const media = projectMedia[project.slug];
+  const isPhone = (media?.frame ?? project.media?.frame) === "phone";
 
   return (
     <div className="flex h-full min-h-56 items-center justify-center border-b border-line bg-bg/60 p-6 lg:border-b-0 lg:border-l">
-      <div
-        className={`rounded-lg border border-dashed border-line-strong ${
-          isPhone ? "aspect-[9/16] w-32" : "aspect-video w-full max-w-sm"
-        } flex items-center justify-center`}
-      >
-        <span className="label text-center text-2xs">
-          {isPhone ? "mobile" : "desktop"}
-        </span>
-      </div>
+      {media ? (
+        <div
+          className={
+            isPhone
+              ? "w-40 overflow-hidden rounded-[1.4rem] border border-line-strong shadow-2xl shadow-black/50 sm:w-48"
+              : "w-full max-w-sm overflow-hidden rounded-lg border border-line-strong"
+          }
+        >
+          <Image
+            src={media.poster}
+            alt={media.alt[lang]}
+            sizes="(min-width: 640px) 12rem, 10rem"
+            placeholder="blur"
+            className="h-auto w-full"
+          />
+        </div>
+      ) : (
+        <div
+          className={`flex items-center justify-center rounded-lg border border-dashed border-line-strong ${
+            isPhone ? "aspect-[9/16] w-32" : "aspect-video w-full max-w-sm"
+          }`}
+        >
+          <span className="label text-center text-2xs">
+            {isPhone ? "mobile" : "desktop"}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
