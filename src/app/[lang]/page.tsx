@@ -4,6 +4,7 @@ import { ArchitectureDiagram } from "@/components/architecture-diagram";
 import { ArrowRightIcon } from "@/components/icons";
 import { Hero } from "@/components/hero";
 import { pillars, topology } from "@/content/infra";
+import { formatNoteDate, sortedNotes } from "@/content/notes";
 import { DevelopmentCard, ProductionCard } from "@/components/project-card";
 import { getDictionary } from "@/content/dictionaries";
 import { otherProjects, productionProjects } from "@/content/projects";
@@ -229,6 +230,35 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
             </div>
           ))}
         </div>
+      </Section>
+
+      {/* ---------------- Notas ---------------- */}
+      <Section id="notas" title={dict.notes.title} lede={dict.notes.lede}>
+        <ul className="grid gap-4">
+          {sortedNotes.slice(0, 3).map((note) => (
+            <li key={note.slug}>
+              <Link
+                href={`/${locale}/notas/${note.slug}`}
+                className="group flex flex-col gap-2 rounded-lg border border-line bg-surface/40 p-5 transition-colors hover:border-accent sm:flex-row sm:items-baseline sm:gap-6"
+              >
+                <time
+                  dateTime={note.date}
+                  className="shrink-0 font-mono text-xs text-ink-3 sm:w-28"
+                >
+                  {formatNoteDate(note.date, locale)}
+                </time>
+                <div>
+                  <h3 className="font-medium transition-colors group-hover:text-accent">
+                    {note.title[locale]}
+                  </h3>
+                  <p className="mt-1 text-sm leading-relaxed text-ink-3">
+                    {note.summary[locale]}
+                  </p>
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
       </Section>
 
       {/* ---------------- Contacto ---------------- */}

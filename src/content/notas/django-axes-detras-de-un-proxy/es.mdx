@@ -1,0 +1,61 @@
+Tenía `django-axes` instalado hacía meses. Es la librería estándar en Django para frenar ataques de fuerza bruta al login: cuenta los intentos fallidos por IP y bloquea al que insiste. Estaba en `INSTALLED_APPS`, con su middleware, su backend de autenticación y su configuración. Los tests pasaban. El admin mostraba los intentos registrados.
+
+No estaba protegiendo absolutamente nada.
+
+## El síntoma que casi no miro
+
+Estaba revisando la tabla de intentos de acceso antes de poner la aplicación en producción, y algo no cerraba: **todos los registros tenían la misma IP**. Siempre la misma, sin importar desde dónde me hubiera conectado.
+
+Esa IP era la de mi propio reverse proxy.
+
+## Por qué pasa
+
+Cuando una aplicación corre detrás de un reverse proxy —Caddy, nginx, Traefik, lo que sea— la conexión TCP que llega a la aplicación no viene del usuario: viene del proxy. Desde el punto de vista de Django, **todos los visitantes del mundo comparten una sola dirección**.
+
+La IP real del visitante viaja en una cabecera HTTP, típicamente `X-Forwarded-For`. Leerla correctamente no es trivial, porque puede haber varios proxies encadenados y porque un atacante puede falsificarla si no sabés cuántos saltos confiables hay delante.
+
+`django-axes` resolvía esto históricamente con una dependencia llamada `django-ipware`, que se encarga de ese trabajo sucio. Y acá está el detalle que me costó encontrar:
+
+> A partir de la versión 8, `django-axes` dejó de instalar `django-ipware` como dependencia obligatoria. Pasó a ser opcional.
+
+Sin esa dependencia presente, `axes` cae en un comportamiento por defecto: usa `REMOTE_ADDR`, la dirección de la conexión TCP. Que detrás de un proxy es siempre la del proxy.
+
+No hay error. No hay advertencia. No hay nada en los logs. La librería funciona: cuenta intentos, aplica límites, bloquea. Simplemente lo hace sobre la dirección equivocada.
+
+## Por qué es peor que "no protege"
+
+Un sistema de seguridad que no hace nada es malo. Este era activamente peligroso, por dos razones simétricas:
+
+**Un atacante nunca se bloquea.** Puede probar contraseñas indefinidamente, porque el contador que debería frenarlo está agrupando sus intentos junto con los de todos los demás.
+
+**Un usuario legítimo sí se bloquea.** Y peor: se bloquean todos a la vez. Como el contador es compartido, basta con que alguien —el atacante, o cualquiera que se equivoque de contraseña varias veces— llegue al límite para que el sistema bloquee la IP del proxy. Es decir, **la única IP que ve la aplicación**. Nadie puede entrar.
+
+Un atacante que entienda esto no necesita adivinar ninguna contraseña. Le alcanza con fallar a propósito la cantidad de veces necesaria para dejar afuera a todos los usuarios reales. Convertí una defensa contra fuerza bruta en un botón de denegación de servicio.
+
+## El arreglo
+
+Hay que acertar tres cosas al mismo tiempo, y las tres son necesarias:
+
+1. **Instalar `django-ipware` explícitamente.** Ya no viene solo.
+2. **Decirle a la aplicación cuántos proxies hay delante.** Si hay uno, el valor es uno. Si mañana agregás un CDN adelante, pasa a ser dos, y si no lo actualizás volvés al mismo problema con otro disfraz.
+3. **Configurar el reverse proxy para que solo confíe en cabeceras de orígenes conocidos.** Sin esto, cualquiera puede mandar un `X-Forwarded-For` inventado y hacerse pasar por la IP que quiera. El bloqueo por IP se vuelve inútil de nuevo, ahora por el otro extremo.
+
+Los tres puntos son un solo mecanismo. Arreglar dos y olvidarse del tercero deja el sistema roto, con la diferencia de que ahora parece que está bien.
+
+## Cómo lo verifiqué
+
+Esto es la parte que importa, y la que más me costó aceptar que hacía falta: **no me alcanzó con leer el código y convencerme.**
+
+Hice intentos de login fallidos falseando la cabecera `X-Forwarded-For` con direcciones distintas, y verifiqué en la base que cada intento quedara registrado con la IP que yo había mandado, no con la del proxy. Después probé el caso inverso: intentos sin la cabecera, para confirmar que no se colara nada por el camino por defecto.
+
+Recién ahí supe que funcionaba.
+
+## Lo que me llevo
+
+Lo que más me inquieta de este bug no es el bug: es que **el sistema se veía perfectamente sano**. Los intentos se registraban, el bloqueo se disparaba, el panel mostraba datos. Todos los indicadores que uno mira decían que estaba bien.
+
+La única señal fue una columna con un valor repetido, en una tabla que abrí casi de casualidad.
+
+Desde entonces cambié algo en cómo reviso las dependencias de seguridad: cuando una librería promete protegerme de algo, no me alcanza con que esté instalada y sin errores. Necesito ver el dato que produce y confirmar que es el que creo que es. Una defensa que nunca probaste es una hipótesis, no una defensa.
+
+Nota al pie: cuando terminé de arreglarlo en el servidor, fui a revisar el despliegue viejo que todavía tenía andando en una plataforma gestionada. Mismo bug, vivo, en producción.

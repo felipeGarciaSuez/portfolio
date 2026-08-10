@@ -1,0 +1,60 @@
+My database backup ran every day in the early hours. It never failed. The file showed up on time, at a reasonable size, and the log said the job had finished cleanly.
+
+I had no idea whether it was any good.
+
+## What a dump that doesn't fail actually proves
+
+That the process exited with status zero. That's it.
+
+It doesn't prove the file can be read. It doesn't prove it contains every table. It doesn't prove the data is complete, or that the engine version that produced it can restore it on the server where you'll need it. Above all, it doesn't prove the only thing that matters: **that on the worst day, you'll be able to come back.**
+
+An unverified backup isn't a backup. It's a folder of files that make you feel calm.
+
+And the moment you discover it was no good is, by definition, the worst possible one: after you've already lost the originals.
+
+## How I verify it
+
+The check has to answer the real question, which isn't "does the file exist?" but "can I rebuild the database from this?". The only honest way to answer it is by doing it.
+
+The process, every day, automatically:
+
+1. **Spin up a throwaway database**, separate from production.
+2. **Restore the latest dump into it.**
+3. **Count the rows in each table** and compare against the real database.
+4. **Destroy the throwaway database.**
+
+If the counts match, the backup works. If they don't, something broke and I find out today, not six months from now.
+
+Step 3 is what turns this into a real verification. Restoring without errors isn't enough either: a truncated dump can restore without complaining and leave you with half your records.
+
+## The decision that looks like a mistake
+
+The verifier **deliberately ignores some tables**.
+
+Session tables, for example. They change constantly: between taking the dump and running the comparison, new sessions have already been created and expired. The counts will never match, and not because the backup is bad.
+
+If I left those tables in, the check would fail every single day. And then the worst thing that can happen to an alert happens: **you get used to it**. The first week you investigate. The second you assume it's the usual one. The third you stop looking. And the day it fails for a real reason, you ignore that too.
+
+An alert that always fires is equivalent to having no alert, with the added cost that you believe you have one. I'd rather verify fewer tables and have the result mean something.
+
+## Why a timer and not cron
+
+The job is triggered by a `systemd` timer, not `cron`. The difference matters for one concrete case: **if the server was powered off at the scheduled time**, `cron` simply skips that run and waits for the next one. The timer, instead, notices at boot that the job is overdue and runs it.
+
+For a server that rarely reboots, the difference looks theoretical. But it's exactly the scenario where you want the backup most: right after something strange happened.
+
+## On frequency
+
+I chose daily, with tiered retention: several recent daily backups, a number of weekly ones, and some monthly.
+
+The interesting part is that **disk space wasn't the criterion**. I measured before deciding: a full snapshot came to about 30 KB, so ten years of daily backups would take around 110 MB. Against the available disk, 0.1%. The cost was irrelevant, and the debate about frequency — which looked like the central question — turned out not to be.
+
+What actually decided it was the usage pattern. The application gets used in bursts: days go by untouched, then suddenly there's a long session of manual work. A weekly backup can land right before one of those sessions and lose it entirely.
+
+And tiered retention answers a different threat than the one you imagine first. Against a dying disk, yesterday's backup is enough. Against a **logical error** — an import that duplicated everything, an accidental deletion — it isn't, because those get discovered weeks later. By the time you notice, every recent backup already contains the problem. There, the only thing that saves you is the depth of the history.
+
+## What isn't solved yet
+
+The backups live on the same disk as the data. That covers logical errors, which are the most frequent failure. **It doesn't cover losing the server**: if the disk dies, the data and the backups go together.
+
+I know, it's written down, and I have the exact condition where it stops being acceptable. I'm not hiding it: a server with no known weak points is a server nobody audited.

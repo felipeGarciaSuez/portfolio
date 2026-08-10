@@ -1,0 +1,60 @@
+El backup de mi base de datos corría todos los días a la madrugada. Nunca falló. El archivo aparecía puntualmente, con un tamaño razonable, y el registro decía que la tarea había terminado bien.
+
+No tenía la menor idea de si servía para algo.
+
+## Qué prueba realmente un dump que no falla
+
+Que el proceso terminó con código de salida cero. Eso es todo.
+
+No prueba que el archivo se pueda leer. No prueba que contenga todas las tablas. No prueba que los datos estén completos, ni que la versión del motor que lo generó pueda restaurarlo en el servidor donde lo vas a necesitar. Sobre todo, no prueba lo único que importa: **que en el peor día vas a poder volver.**
+
+Un respaldo no verificado no es un respaldo. Es una carpeta con archivos que te hacen sentir tranquilo.
+
+Y el momento en que descubrís que no servía es, por definición, el peor momento posible: cuando ya perdiste los datos originales.
+
+## Cómo lo verifico
+
+La verificación tiene que responder la pregunta real, que no es "¿el archivo existe?" sino "¿puedo reconstruir la base a partir de esto?". La única forma honesta de contestarla es haciéndolo.
+
+El proceso, todos los días, automático:
+
+1. **Levantar una base descartable**, separada de la de producción.
+2. **Restaurar el último dump ahí adentro.**
+3. **Contar las filas de cada tabla** y compararlas contra la base real.
+4. **Destruir la base descartable.**
+
+Si los conteos coinciden, el respaldo sirve. Si no coinciden, algo se rompió y me entero hoy, no dentro de seis meses.
+
+El paso 3 es el que convierte esto en una verificación de verdad. Restaurar sin errores tampoco alcanza: un dump truncado puede restaurarse sin quejarse y dejarte con la mitad de los registros.
+
+## La decisión que parece un error
+
+El verificador **ignora a propósito algunas tablas**.
+
+Las de sesiones, por ejemplo. Cambian todo el tiempo: entre que se toma el dump y que se corre la comparación, ya se crearon y expiraron sesiones nuevas. Los conteos nunca van a coincidir, y no porque el respaldo esté mal.
+
+Si dejara esas tablas adentro, la verificación fallaría todos los días. Y ahí pasa lo peor que le puede pasar a una alerta: **te acostumbrás**. La primera semana investigás. La segunda asumís que es la de siempre. La tercera ya no la mirás. Y el día que falla por un motivo real, la ignorás igual.
+
+Una alerta que suena siempre es equivalente a no tener alerta, con el costo agregado de que creés que la tenés. Prefiero verificar menos tablas y que el resultado signifique algo.
+
+## Por qué un timer y no cron
+
+La tarea la dispara un timer de `systemd`, no `cron`. La diferencia importa por un caso concreto: **si el servidor estaba apagado a la hora programada**, `cron` simplemente saltea esa ejecución y espera a la siguiente. El timer, en cambio, detecta al arrancar que la tarea quedó pendiente y la corre.
+
+Para un servidor que reinicia poco, la diferencia parece teórica. Pero es exactamente el escenario donde más querés el respaldo: después de algo raro.
+
+## Sobre la frecuencia
+
+Elegí diario, con retención escalonada: varios respaldos diarios recientes, unos cuantos semanales, y algunos mensuales.
+
+Lo interesante es que **el espacio en disco no fue el criterio**. Lo medí antes de decidir: un snapshot completo pesaba unos 30 KB, así que diez años de respaldos diarios ocupaban alrededor de 110 MB. Sobre el disco disponible, un 0,1%. El costo era irrelevante y la discusión sobre frecuencia, que parecía la pregunta central, resultó no serlo.
+
+Lo que sí decidió fue el patrón de uso. La aplicación se usa a los tirones: pasan días sin tocarla y de golpe hay una sesión larga de trabajo manual. Un respaldo semanal puede caer justo antes de una de esas sesiones y perderla entera.
+
+Y la retención escalonada responde a una amenaza distinta de la que uno imagina primero. Contra un disco que muere, alcanza con tener el respaldo de ayer. Contra un **error lógico** —un import que duplicó todo, un borrado accidental— no alcanza, porque esos errores se descubren semanas después. Para cuando te das cuenta, todos los respaldos recientes ya tienen el problema adentro. Ahí lo único que salva es la profundidad del historial.
+
+## Lo que todavía no está resuelto
+
+Los respaldos viven en el mismo disco que los datos. Eso cubre los errores lógicos, que son la falla más frecuente. **No cubre perder el servidor**: si muere el disco, se van los datos y los respaldos juntos.
+
+Lo sé, está anotado, y tengo escrita la condición exacta en la que deja de ser aceptable. No lo escondo: un servidor sin puntos débiles conocidos es un servidor que nadie auditó.

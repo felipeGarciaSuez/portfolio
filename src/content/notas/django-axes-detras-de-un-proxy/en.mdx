@@ -1,0 +1,61 @@
+I'd had `django-axes` installed for months. It's the standard Django library for stopping brute-force attacks on login: it counts failed attempts per IP and blocks whoever keeps trying. It was in `INSTALLED_APPS`, with its middleware, its authentication backend and its configuration. Tests passed. The admin showed the recorded attempts.
+
+It was protecting absolutely nothing.
+
+## The symptom I almost didn't look at
+
+I was reviewing the access-attempts table before putting the application into production, and something didn't add up: **every record had the same IP**. Always the same one, no matter where I had connected from.
+
+That IP belonged to my own reverse proxy.
+
+## Why it happens
+
+When an application runs behind a reverse proxy — Caddy, nginx, Traefik, whatever — the TCP connection reaching the application doesn't come from the user: it comes from the proxy. From Django's point of view, **every visitor in the world shares a single address**.
+
+The visitor's real IP travels in an HTTP header, typically `X-Forwarded-For`. Reading it correctly isn't trivial, because there may be several chained proxies and because an attacker can forge it if you don't know how many trusted hops sit in front.
+
+`django-axes` historically solved this with a dependency called `django-ipware`, which handles that dirty work. And here's the detail that took me a while to find:
+
+> As of version 8, `django-axes` stopped installing `django-ipware` as a required dependency. It became optional.
+
+Without that dependency present, `axes` falls back to a default behaviour: it uses `REMOTE_ADDR`, the TCP connection's address. Which, behind a proxy, is always the proxy's.
+
+There's no error. No warning. Nothing in the logs. The library works: it counts attempts, applies limits, blocks. It just does all of that against the wrong address.
+
+## Why it's worse than "doesn't protect"
+
+A security system that does nothing is bad. This one was actively dangerous, for two symmetrical reasons:
+
+**An attacker never gets blocked.** They can try passwords indefinitely, because the counter that should stop them is lumping their attempts together with everyone else's.
+
+**A legitimate user does get blocked.** And worse: everyone gets blocked at once. Since the counter is shared, all it takes is for someone — the attacker, or anyone mistyping their password a few times — to hit the limit, and the system blocks the proxy's IP. That is, **the only IP the application can see**. Nobody gets in.
+
+An attacker who understands this doesn't need to guess any password. It's enough to fail on purpose as many times as needed to lock out every real user. I had turned a brute-force defence into a denial-of-service button.
+
+## The fix
+
+Three things have to be right at the same time, and all three are necessary:
+
+1. **Install `django-ipware` explicitly.** It no longer comes along for the ride.
+2. **Tell the application how many proxies sit in front.** If there's one, the value is one. If tomorrow you add a CDN in front, it becomes two, and if you don't update it you're back to the same problem wearing a different costume.
+3. **Configure the reverse proxy to trust headers only from known origins.** Without this, anyone can send a made-up `X-Forwarded-For` and impersonate whatever IP they like. IP-based blocking becomes useless again, now from the other end.
+
+The three points are a single mechanism. Fixing two and forgetting the third leaves the system broken, with the added problem that now it looks fine.
+
+## How I verified it
+
+This is the part that matters, and the part I found hardest to accept was necessary: **reading the code and convincing myself wasn't enough.**
+
+I made failed login attempts while forging the `X-Forwarded-For` header with different addresses, and checked in the database that each attempt was recorded with the IP I had sent, not the proxy's. Then I tested the inverse case: attempts with no header at all, to confirm nothing was slipping through the default path.
+
+Only then did I know it worked.
+
+## What I take from it
+
+What unsettles me about this bug isn't the bug: it's that **the system looked perfectly healthy**. Attempts were being recorded, blocking triggered, the panel showed data. Every indicator you'd normally check said it was fine.
+
+The only signal was a column with a repeated value, in a table I opened almost by accident.
+
+Since then I've changed something about how I review security dependencies: when a library promises to protect me from something, it isn't enough for it to be installed and error-free. I need to see the data it produces and confirm it's what I think it is. A defence you never tested is a hypothesis, not a defence.
+
+Footnote: when I finished fixing it on the server, I went to check the older deployment I still had running on a managed platform. Same bug, alive, in production.

@@ -1,0 +1,66 @@
+Corré esto en un servidor con `ufw` activo:
+
+```
+sudo ufw status verbose
+```
+
+Si te dice `Default: deny (incoming)` y solo lista los puertos que vos abriste, la conclusión natural es que nada más está expuesto a internet. Es una conclusión razonable. También puede ser falsa.
+
+## El experimento que lo demuestra
+
+Levantá un Postgres en Docker con esta línea en el compose:
+
+```
+ports:
+  - "5432:5432"
+```
+
+Ahora, desde otra máquina en internet, intentá conectarte al puerto 5432 de ese servidor.
+
+Conecta.
+
+El firewall sigue diciendo que el tráfico entrante está denegado por defecto. Y no está mintiendo exactamente: **está describiendo reglas que ya no son las primeras que se evalúan.**
+
+## Qué está pasando abajo
+
+`ufw` no es un firewall. Es una interfaz cómoda sobre `iptables` (o `nftables`), que sí lo es. Cuando escribís una regla en `ufw`, termina traducida a reglas de `iptables` dentro de sus propias cadenas.
+
+Docker también escribe reglas de `iptables`. Necesita hacerlo: es así como redirige el tráfico que llega al host hacia el contenedor correcto. Pero las inserta en la cadena `DOCKER`, que se evalúa en `PREROUTING`/`FORWARD`, **antes de que el paquete llegue a las cadenas donde `ufw` puso las suyas**.
+
+El paquete nunca llega a la regla que lo habría bloqueado. Se lo lleva Docker primero.
+
+Esto no es un bug ni un descuido: es consecuencia de cómo funciona el ruteo de paquetes en Linux, y Docker lo documenta. El problema es que **la herramienta que usás para verificar te muestra un estado incompleto**, y no hay nada que te avise de la diferencia.
+
+## Por qué es tan fácil caer
+
+Todo el mundo entiende que abrir un puerto es una decisión de seguridad. Nadie escribe `ufw allow 5432` sin pensarlo dos veces.
+
+Pero `ports: "5432:5432"` en un archivo de compose no se lee como una decisión de seguridad. Se lee como configuración de desarrollo — de hecho, en desarrollo es exactamente eso, la forma de conectar tu cliente de base de datos al contenedor. La línea sobrevive el copy-paste del compose de desarrollo al de producción sin que nadie la mire dos veces.
+
+Y el chequeo que harías para detectarlo, mirar el firewall, te devuelve un resultado tranquilizador.
+
+## La regla que adopté
+
+**Ningún contenedor de aplicación ni de base de datos publica puertos al host. Sin excepciones.**
+
+Solo el reverse proxy publica algo, y publica lo que tiene que publicar: 80 y 443. Todo lo demás se comunica por redes internas de Docker, donde los contenedores se alcanzan por el nombre del servicio.
+
+La consecuencia práctica es que la base de datos deja de existir para internet. No está bloqueada por una regla que podría fallar: no hay ninguna ruta que llegue hasta ella.
+
+Va un paso más: cada aplicación tiene su propia red interna con su base. Así, una aplicación comprometida tampoco alcanza la base de datos de la otra. El aislamiento no depende de que el firewall esté bien configurado, sino de que la ruta directamente no exista.
+
+## Cómo verificarlo de verdad
+
+Mirar `ufw status` no sirve para esto. Lo que sí sirve:
+
+**Ver qué está escuchando realmente**, con la lista de procesos por socket. Ahí aparece el estado real, no el declarado. Si el único proceso con puertos hacia todas las interfaces es el proxy, estás bien.
+
+**Probar desde afuera.** Intentar conectarse al puerto de la base desde otra máquina. Si la conexión no se establece, el aislamiento es real.
+
+**Probar desde adentro de la red equivocada.** Verifiqué que la base de datos de una aplicación no responde desde la red compartida donde vive el proxy: solo la alcanza su propio contenedor. Eso confirma que la segmentación existe y no es solo un dibujo en un diagrama.
+
+## Lo que me llevo
+
+Este caso me dejó una desconfianza sana hacia las herramientas de diagnóstico. `ufw status` no me mintió: me contestó exactamente lo que le pregunté, que era el estado de sus propias reglas. Yo estaba haciendo una pregunta distinta —"¿qué puede alcanzar este servidor desde internet?"— y asumí que la respuesta era la misma.
+
+Cuando una herramienta te da una respuesta tranquilizadora, vale la pena preguntarse si está contestando la pregunta que hiciste o una parecida.

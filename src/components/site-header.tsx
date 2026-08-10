@@ -32,6 +32,7 @@ export function SiteHeader({
     { href: `/${lang}#infraestructura`, label: dict.nav.infra },
     { href: `/${lang}#experiencia`, label: dict.nav.experience },
     { href: `/${lang}#stack`, label: dict.nav.stack },
+    { href: `/${lang}/notas`, label: dict.nav.notes },
     { href: `/${lang}#contacto`, label: dict.nav.contact },
   ];
 

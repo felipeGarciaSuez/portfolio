@@ -1,0 +1,66 @@
+Run this on a server with `ufw` enabled:
+
+```
+sudo ufw status verbose
+```
+
+If it tells you `Default: deny (incoming)` and only lists the ports you opened yourself, the natural conclusion is that nothing else is exposed to the internet. It's a reasonable conclusion. It can also be false.
+
+## The experiment that proves it
+
+Start a Postgres container with this line in your compose file:
+
+```
+ports:
+  - "5432:5432"
+```
+
+Now, from another machine on the internet, try connecting to port 5432 on that server.
+
+It connects.
+
+The firewall still says incoming traffic is denied by default. And it isn't exactly lying: **it's describing rules that are no longer the first ones evaluated.**
+
+## What's happening underneath
+
+`ufw` isn't a firewall. It's a convenient interface over `iptables` (or `nftables`), which is. When you write a rule in `ufw`, it ends up translated into `iptables` rules inside its own chains.
+
+Docker also writes `iptables` rules. It has to: that's how it routes traffic arriving at the host to the right container. But it inserts them into the `DOCKER` chain, evaluated in `PREROUTING`/`FORWARD`, **before the packet reaches the chains where `ufw` put its own**.
+
+The packet never reaches the rule that would have blocked it. Docker takes it first.
+
+This isn't a bug or an oversight: it follows from how packet routing works on Linux, and Docker documents it. The problem is that **the tool you use to verify shows you an incomplete state**, and nothing warns you about the gap.
+
+## Why it's so easy to fall into
+
+Everyone understands that opening a port is a security decision. Nobody writes `ufw allow 5432` without thinking twice.
+
+But `ports: "5432:5432"` in a compose file doesn't read like a security decision. It reads like development configuration — and in development that's exactly what it is, the way you connect your database client to the container. The line survives the copy-paste from the development compose to the production one without anyone looking at it twice.
+
+And the check you'd run to catch it, looking at the firewall, gives you a reassuring answer.
+
+## The rule I adopted
+
+**No application or database container publishes ports to the host. No exceptions.**
+
+Only the reverse proxy publishes anything, and it publishes what it's meant to: 80 and 443. Everything else communicates over internal Docker networks, where containers reach each other by service name.
+
+The practical consequence is that the database stops existing as far as the internet is concerned. It isn't blocked by a rule that could fail: there's no route that reaches it at all.
+
+I take it one step further: each application has its own internal network with its own database. That way a compromised application can't reach the other one's database either. The isolation doesn't depend on the firewall being correctly configured, but on the route simply not existing.
+
+## How to actually verify it
+
+Looking at `ufw status` doesn't help here. What does help:
+
+**See what's actually listening**, with the per-socket process list. That shows the real state, not the declared one. If the only process with ports bound to all interfaces is the proxy, you're fine.
+
+**Test from outside.** Try connecting to the database port from another machine. If the connection doesn't establish, the isolation is real.
+
+**Test from inside the wrong network.** I verified that one application's database doesn't answer from the shared network where the proxy lives: only its own container can reach it. That confirms the segmentation exists and isn't just a drawing on a diagram.
+
+## What I take from it
+
+This one left me with a healthy distrust of diagnostic tools. `ufw status` didn't lie to me: it answered exactly what I asked, which was the state of its own rules. I was asking a different question — "what can reach this server from the internet?" — and assumed the answer was the same.
+
+When a tool gives you a reassuring answer, it's worth asking whether it's answering the question you asked or a similar-sounding one.
