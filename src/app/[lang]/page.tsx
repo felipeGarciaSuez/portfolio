@@ -1,5 +1,9 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArchitectureDiagram } from "@/components/architecture-diagram";
+import { ArrowRightIcon } from "@/components/icons";
 import { Hero } from "@/components/hero";
+import { pillars, topology } from "@/content/infra";
 import { DevelopmentCard, ProductionCard } from "@/components/project-card";
 import { getDictionary } from "@/content/dictionaries";
 import { otherProjects, productionProjects } from "@/content/projects";
@@ -92,6 +96,35 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
               dict={dict}
             />
           ))}
+        </div>
+      </Section>
+
+      {/* ---------------- Infraestructura ---------------- */}
+      <Section id="infraestructura" title={dict.infra.title} lede={dict.infra.lede}>
+        <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:items-start">
+          <ArchitectureDiagram architecture={topology} lang={locale} />
+
+          <div className="grid gap-4">
+            {pillars.map((pillar) => (
+              <div
+                key={pillar.id}
+                className="rounded-lg border border-line bg-surface/40 p-5"
+              >
+                <h3 className="label mb-2">{pillar.title[locale]}</h3>
+                <p className="text-sm leading-relaxed text-ink-2">
+                  {pillar.summary[locale]}
+                </p>
+              </div>
+            ))}
+
+            <Link
+              href={`/${locale}/infraestructura`}
+              className="inline-flex items-center gap-2 text-sm font-medium text-ink transition-colors hover:text-accent"
+            >
+              {dict.infra.readMore}
+              <ArrowRightIcon />
+            </Link>
+          </div>
         </div>
       </Section>
 
