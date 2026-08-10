@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { Hero } from "@/components/hero";
 import { DevelopmentCard, ProductionCard } from "@/components/project-card";
 import { getDictionary } from "@/content/dictionaries";
-import { developmentProjects, productionProjects } from "@/content/projects";
+import { otherProjects, productionProjects } from "@/content/projects";
 import { site } from "@/content/site";
 import { roles, education, yearsOfExperience } from "@/content/experience";
 import { stack, languages } from "@/content/stack";
@@ -81,10 +81,10 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
         </div>
 
         <h3 className="mb-6 mt-14 font-mono text-sm uppercase tracking-[0.14em] text-ink-3">
-          {dict.projects.developmentTitle}
+          {dict.projects.otherTitle}
         </h3>
         <div className="grid gap-6 sm:grid-cols-2">
-          {developmentProjects.map((project) => (
+          {otherProjects.map((project) => (
             <DevelopmentCard
               key={project.slug}
               project={project}

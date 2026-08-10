@@ -5,6 +5,7 @@ import { projectMedia } from "@/content/media";
 import type { Project } from "@/content/projects";
 import type { Locale } from "@/lib/i18n";
 import { ArrowRightIcon, ExternalIcon } from "./icons";
+import { StatusPill } from "./status-pill";
 import { VideoLoop } from "./video-loop";
 
 /**
@@ -105,7 +106,7 @@ export function DevelopmentCard({
 }) {
   return (
     <article className="flex flex-col rounded-xl border border-line bg-surface/30 p-6 transition-colors hover:border-line-strong">
-      <StatusPill status="development" dict={dict} />
+      <StatusPill status={project.status} dict={dict} />
       <h3 className="mt-4 text-lg font-semibold tracking-tight">
         {project.name}
       </h3>
@@ -128,28 +129,6 @@ export function DevelopmentCard({
         <ArrowRightIcon />
       </Link>
     </article>
-  );
-}
-
-function StatusPill({
-  status,
-  dict,
-}: {
-  status: "production" | "development";
-  dict: Dictionary;
-}) {
-  const isProd = status === "production";
-  return (
-    <span
-      className={`inline-flex items-center gap-2 rounded-full border px-2.5 py-1 font-mono text-2xs uppercase tracking-widest ${
-        isProd
-          ? "border-ok/40 bg-ok/10 text-ok"
-          : "border-line text-ink-3"
-      }`}
-    >
-      {isProd && <span className="size-1.5 rounded-full bg-ok" aria-hidden />}
-      {isProd ? dict.projects.statusProduction : dict.projects.statusDevelopment}
-    </span>
   );
 }
 

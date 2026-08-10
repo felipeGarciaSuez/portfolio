@@ -38,8 +38,7 @@ export const site = {
   linkedin: "https://www.linkedin.com/in/felipegarciasuez/",
   cvPath: "/cv-felipe-garcia-suez.pdf",
 
-  /** Se completa cuando el dominio esté comprado y apuntado. */
-  url: "https://felipegarciasuez.dev",
+  url: "https://felipegarciasuez.tech",
 } as const;
 
 /** Dominios propios que el hero consulta en vivo. */

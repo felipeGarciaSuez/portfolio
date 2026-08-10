@@ -1,6 +1,21 @@
 import type { Localized, LocalizedList } from "@/lib/i18n";
 
-export type ProjectStatus = "production" | "development";
+export type ProjectStatus = "production" | "development" | "discontinued";
+
+/**
+ * Diagrama de arquitectura, como datos en vez de una imagen.
+ * Se dibuja con HTML: escala bien en mobile, se lee con lector de pantalla
+ * y no hay que reexportar un PNG cada vez que cambia una pieza.
+ */
+export type Architecture = {
+  summary: Localized;
+  tiers: {
+    id: string;
+    label: Localized;
+    nodes: { name: string; note?: Localized }[];
+  }[];
+  notes?: LocalizedList;
+};
 
 export type ProjectLink = {
   kind: "demo" | "repo" | "case";
@@ -35,8 +50,14 @@ export type Project = {
     body: Localized;
   };
   decisions: DecisionRecord[];
+  architecture?: Architecture;
   learned: Localized;
   next: Localized;
+  /** Solo para proyectos dados de baja: por qué se frenó. */
+  discontinuedReason?: {
+    title: Localized;
+    body: Localized;
+  };
   highlights: LocalizedList;
   links: ProjectLink[];
   /** Capturas: se completan cuando existan los archivos. */
@@ -116,6 +137,65 @@ export const projects: Project[] = [
         },
       },
     ],
+    architecture: {
+      summary: {
+        es: "Todo corre en mi VPS, en contenedores. El único proceso que escucha en internet es el reverse proxy; la aplicación y la base se hablan por una red interna de Docker que no sale a ningún lado.",
+        en: "Everything runs on my VPS, in containers. The only process listening on the internet is the reverse proxy; the app and the database talk over an internal Docker network that goes nowhere else.",
+      },
+      tiers: [
+        {
+          id: "edge",
+          label: { es: "Borde", en: "Edge" },
+          nodes: [
+            {
+              name: "Caddy",
+              note: {
+                es: "Único puerto expuesto (443). Emite y renueva el TLS solo.",
+                en: "The only exposed port (443). Issues and renews TLS on its own.",
+              },
+            },
+          ],
+        },
+        {
+          id: "app",
+          label: { es: "Aplicación", en: "Application" },
+          nodes: [
+            {
+              name: "gunicorn + Django",
+              note: {
+                es: "Sin puertos publicados al host: Caddy lo alcanza por el nombre del servicio.",
+                en: "No ports published to the host: Caddy reaches it by service name.",
+              },
+            },
+          ],
+        },
+        {
+          id: "data",
+          label: { es: "Datos", en: "Data" },
+          nodes: [
+            {
+              name: "PostgreSQL 17",
+              note: {
+                es: "En una red interna aparte. Verificado que no responde desde la red del proxy.",
+                en: "On a separate internal network. Verified it doesn't answer from the proxy's network.",
+              },
+            },
+          ],
+        },
+      ],
+      notes: {
+        es: [
+          "Ningún contenedor de aplicación o base publica puertos: Docker escribe reglas de iptables por debajo del firewall, así que un puerto publicado deja Postgres expuesto aunque ufw diga lo contrario.",
+          "Límites de memoria y CPU por contenedor, para que una aplicación con problemas no deje sin recursos a las demás del servidor.",
+          "Respaldo diario con un timer de systemd, y la restauración se prueba de verdad: se restaura en una base descartable y se comparan las filas contra el origen.",
+        ],
+        en: [
+          "No application or database container publishes ports: Docker writes iptables rules beneath the firewall, so a published port leaves Postgres exposed even when ufw says otherwise.",
+          "Per-container memory and CPU limits, so a misbehaving app can't starve the others on the server.",
+          "Daily backup on a systemd timer, and the restore is actually tested: it's restored into a throwaway database and row counts are compared against the source.",
+        ],
+      },
+    },
     learned: {
       es: "Que migrar datos no termina cuando el restore corre sin errores. Terminé comparando el conteo de filas de las 18 tablas contra el origen y corriendo el chequeo de migraciones pendientes, porque un restore que 'no falló' y una base correcta no son lo mismo.",
       en: "That migrating data isn't done when the restore exits cleanly. I ended up comparing row counts across all 18 tables against the source and checking for pending migrations, because a restore that 'didn't fail' and a correct database are not the same thing.",
@@ -209,6 +289,62 @@ export const projects: Project[] = [
         },
       },
     ],
+    architecture: {
+      summary: {
+        es: "Segunda aplicación en el mismo servidor que Caudal, compartiendo el reverse proxy pero con su base aislada. El frontend no se sirve con Node: se compila a archivos estáticos que entrega el proxy directamente.",
+        en: "A second application on the same server as Caudal, sharing the reverse proxy but with its own isolated database. The frontend isn't served by Node: it's built to static files the proxy delivers directly.",
+      },
+      tiers: [
+        {
+          id: "edge",
+          label: { es: "Borde", en: "Edge" },
+          nodes: [
+            {
+              name: "Caddy",
+              note: {
+                es: "El mismo que sirve Caudal, con otro dominio y su propio certificado.",
+                en: "The same one serving Caudal, on a different domain with its own certificate.",
+              },
+            },
+          ],
+        },
+        {
+          id: "app",
+          label: { es: "Aplicación", en: "Application" },
+          nodes: [
+            {
+              name: "React + Vite (build estático)",
+              note: {
+                es: "Archivos ya compilados. No hay proceso de Node corriendo en producción.",
+                en: "Pre-built files. There's no Node process running in production.",
+              },
+            },
+            {
+              name: "Django REST Framework",
+              note: {
+                es: "API de solo lectura, sin autenticación. UUID como clave primaria.",
+                en: "Read-only API, no authentication. UUIDs as primary keys.",
+              },
+            },
+          ],
+        },
+        {
+          id: "data",
+          label: { es: "Datos", en: "Data" },
+          nodes: [{ name: "PostgreSQL 16" }],
+        },
+      ],
+      notes: {
+        es: [
+          "Los nombres de contenedores y volúmenes siguen una convención obligatoria: el respaldo del servidor descubre qué hacer a partir de ellos, y una aplicación que no la respeta queda sin backup en silencio.",
+          "Se despliega desde un clon de git con una clave de despliegue de solo lectura, así el servidor no tiene permisos de escritura sobre el repositorio.",
+        ],
+        en: [
+          "Container and volume names follow a mandatory convention: the server's backup discovers what to do from them, and an app that ignores it silently goes unbacked-up.",
+          "Deployed from a git clone with a read-only deploy key, so the server has no write access to the repository.",
+        ],
+      },
+    },
     learned: {
       es: "Que la segunda aplicación en un servidor es la que revela si el trabajo de infraestructura estaba bien hecho. Con una sola app, muchas decisiones parecen opcionales; con dos, cada una que faltaba se nota.",
       en: "That the second application on a server is what reveals whether the infrastructure work was done properly. With one app many decisions look optional; with two, every missing one shows.",
@@ -242,7 +378,7 @@ export const projects: Project[] = [
   {
     slug: "coproduce",
     name: "CoProduce",
-    status: "development",
+    status: "discontinued",
     order: 3,
     tagline: {
       es: "Co-producción musical remota sobre Ableton Live.",
@@ -277,17 +413,35 @@ export const projects: Project[] = [
         },
       },
     ],
+    discontinuedReason: {
+      title: {
+        es: "Lo di de baja funcionando, y ese fue el punto",
+        en: "I shut it down while it worked, and that was the point",
+      },
+      body: {
+        es: "Llegué a tener un instalador funcionando: control remoto de la máquina del otro y audio en tiempo real con calidad de música, las dos cosas resueltas. Investigando el mercado encontré Muse, que hace exactamente esto y lleva años de desarrollo. Seguir habría sido construir una versión peor de algo que ya existe, para un problema que ya estaba resuelto. Frené ahí. La parte difícil —entender por qué el audio de las videollamadas destruye una mezcla, y cómo evitarlo— la aprendí igual, y me la llevo.",
+        en: "I got as far as a working installer: remote control of the other machine and real-time music-quality audio, both solved. While researching the market I found Muse, which does exactly this and has years of development behind it. Continuing would have meant building a worse version of something that already exists, for a problem that was already solved. I stopped there. The hard part — understanding why video-call audio destroys a mix, and how to avoid it — I learned anyway, and that stays with me.",
+      },
+    },
     learned: {
-      es: "En curso: que los valores por defecto de una plataforma codifican un caso de uso, y que salirse de ese caso implica desactivar a mano cada cosa que fue pensada para ayudar.",
-      en: "In progress: that a platform's defaults encode a use case, and stepping outside it means manually disabling every thing that was designed to help.",
+      es: "Dos cosas. La técnica: que los valores por defecto de una plataforma codifican un caso de uso, y salirse de ese caso implica desactivar a mano cada cosa que fue pensada para ayudar. La otra, más incómoda y más útil: que investigar el mercado antes de escribir código habría ahorrado semanas, y que reconocerlo tarde igual es mejor que no reconocerlo.",
+      en: "Two things. The technical one: a platform's defaults encode a use case, and stepping outside it means manually disabling everything designed to help. The other, less comfortable and more useful: researching the market before writing code would have saved weeks, and realising it late still beats not realising it.",
     },
     next: {
-      es: "Cerrar el flujo de permisos en macOS y estabilizar la reconexión.",
-      en: "Finishing the macOS permissions flow and stabilising reconnection.",
+      es: "Nada. Está cerrado a propósito.",
+      en: "Nothing. It's closed on purpose.",
     },
     highlights: {
-      es: ["Multiplataforma: Windows y macOS", "Sin cuentas de usuario: código de sala y contraseña"],
-      en: ["Cross-platform: Windows and macOS", "No user accounts: room code and password"],
+      es: [
+        "Llegó a instalador funcionando en Windows y macOS",
+        "Control remoto y audio en tiempo real, ambos resueltos",
+        "Dado de baja por decisión de producto, no por problemas técnicos",
+      ],
+      en: [
+        "Reached a working installer on Windows and macOS",
+        "Remote control and real-time audio, both solved",
+        "Shut down as a product decision, not for technical reasons",
+      ],
     },
     links: [],
   },
@@ -350,8 +504,13 @@ export const productionProjects = projects
   .filter((p) => p.status === "production")
   .sort((a, b) => a.order - b.order);
 
-export const developmentProjects = projects
-  .filter((p) => p.status === "development")
+/**
+ * Los discontinuados van acá junto a los que siguen en curso: separarlos en
+ * su propia sección les daría un peso que no tienen, y esconderlos sería
+ * perder la historia de por qué se frenaron, que es la parte interesante.
+ */
+export const otherProjects = projects
+  .filter((p) => p.status !== "production")
   .sort((a, b) => a.order - b.order);
 
 export function getProject(slug: string): Project | undefined {
