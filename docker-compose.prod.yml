@@ -1,0 +1,32 @@
+# Sigue la convención de infra/.claude/CLAUDE.md sección 3:
+# - Ningún puerto publicado al host: solo Caddy habla con este contenedor,
+#   por la red "web" compartida.
+# - Nombre "portfolio-web" para que el backup/mantenimiento del servidor
+#   lo reconozca (esta app no tiene base de datos propia, así que no hay
+#   "portfolio-db" ni volumen que respaldar).
+# - Límites de recursos para que un problema acá no le saque memoria a
+#   Caudal ni a CuadrosJaci.
+# - Rotación de logs para que Docker no llene el disco en silencio.
+services:
+  web:
+    container_name: portfolio-web
+    image: portfolio:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    networks:
+      - web
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  web:
+    external: true
