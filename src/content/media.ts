@@ -1,5 +1,4 @@
 import type { StaticImageData } from "next/image";
-import caudalHormigas from "@/assets/caudal-hormigas.webp";
 
 /**
  * Capturas y clips por proyecto.
@@ -31,11 +30,12 @@ export type ProjectMedia = ImageMedia | VideoMedia;
 
 export const projectMedia: Record<string, ProjectMedia> = {
   caudal: {
-    kind: "image",
-    poster: caudalHormigas,
+    kind: "video",
+    src: "/media/caudal-demo.mp4",
+    poster: "/media/caudal-poster.webp",
     alt: {
-      es: "Caudal abierto en el celular en caudalwallet.com, mostrando el panel de gastos hormiga con las categorías Viaje, Hogar, Salud y Supermercado, y un aumento del 46% respecto del mes pasado. Los importes están desenfocados.",
-      en: "Caudal open on a phone at caudalwallet.com, showing the small-expenses panel with the categories Viaje, Hogar, Salud and Supermercado, and a 46% increase over last month. Amounts are blurred.",
+      es: "Carga de un gasto en Caudal en dos toques: se ingresa el monto y se elige una categoría entre chips como Ahorro, Apps, Café, Delivery o Supermercado, sin salir de la pantalla.",
+      en: "Logging an expense in Caudal in two taps: enter the amount and pick a category from chips like Ahorro, Apps, Café, Delivery or Supermercado, without leaving the screen.",
     },
     frame: "phone",
   },
