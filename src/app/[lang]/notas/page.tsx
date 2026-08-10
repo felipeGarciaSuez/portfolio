@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowRightIcon } from "@/components/icons";
 import { getDictionary } from "@/content/dictionaries";
 import { formatNoteDate, sortedNotes } from "@/content/notes";
-import { site } from "@/content/site";
+import { ogImageUrl, site } from "@/content/site";
 import { isLocale, locales, type Locale } from "@/lib/i18n";
 
 export function generateStaticParams() {
@@ -15,6 +15,9 @@ export async function generateMetadata({ params }: PageProps<"/[lang]/notas">) {
   if (!isLocale(lang)) return {};
 
   const dict = getDictionary(lang);
+  const title = `${dict.notes.title} — ${site.name}`;
+  const image = ogImageUrl(site.name, dict.notes.title);
+
   return {
     title: dict.notes.title,
     description: dict.notes.lede,
@@ -23,9 +26,16 @@ export async function generateMetadata({ params }: PageProps<"/[lang]/notas">) {
       languages: { es: "/es/notas", en: "/en/notas" },
     },
     openGraph: {
-      title: `${dict.notes.title} — ${site.name}`,
+      title,
       description: dict.notes.lede,
       url: `${site.url}/${lang}/notas`,
+      images: [{ url: image, width: 1200, height: 630, alt: dict.notes.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: dict.notes.lede,
+      images: [image],
     },
   };
 }

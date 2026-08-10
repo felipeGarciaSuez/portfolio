@@ -8,7 +8,7 @@ import { VideoLoop } from "@/components/video-loop";
 import { getDictionary } from "@/content/dictionaries";
 import { projectMedia } from "@/content/media";
 import { getProject, projects } from "@/content/projects";
-import { site } from "@/content/site";
+import { ogImageUrl, site } from "@/content/site";
 import { isLocale, locales, type Locale } from "@/lib/i18n";
 
 /** Las 8 combinaciones (2 idiomas x 4 proyectos) se generan en el build. */
@@ -28,6 +28,9 @@ export async function generateMetadata({
   if (!project) return {};
 
   const title = `${project.name} — ${project.tagline[lang]}`;
+  const description = project.problem[lang].slice(0, 200);
+  const image = ogImageUrl(project.name, project.tagline[lang]);
+
   return {
     title: project.name,
     description: project.tagline[lang],
@@ -41,8 +44,15 @@ export async function generateMetadata({
     openGraph: {
       type: "article",
       title,
-      description: project.problem[lang].slice(0, 200),
+      description,
       url: `${site.url}/${lang}/proyectos/${slug}`,
+      images: [{ url: image, width: 1200, height: 630, alt: title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image],
     },
   };
 }

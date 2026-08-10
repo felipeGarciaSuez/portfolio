@@ -41,6 +41,12 @@ export const site = {
   url: "https://felipegarciasuez.tech",
 } as const;
 
+/** URL de la imagen Open Graph generada para una combinación eyebrow/title dada. */
+export function ogImageUrl(eyebrow: string, title: string): string {
+  const params = new URLSearchParams({ eyebrow, title });
+  return `${site.url}/api/og?${params.toString()}`;
+}
+
 /** Dominios propios que el hero consulta en vivo. */
 export const liveSites = [
   { host: "caudalwallet.com", project: "caudal" },

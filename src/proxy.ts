@@ -50,10 +50,12 @@ export function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-      Todo menos: internos de Next, la API, y cualquier archivo con extensión
-      (el CV, imágenes, videos, robots.txt, sitemap.xml…). Sin la exclusión
-      por extensión, `/cv.pdf` se redirigiría a `/es/cv.pdf` y daría 404.
+      Todo menos: internos de Next, la API, cualquier archivo con extensión
+      (el CV, imágenes, videos, robots.txt, sitemap.xml…) y las rutas de
+      ícono generadas por código. Estas últimas no tienen extensión en su
+      path — `/icon`, no `/icon.png` — así que sin la exclusión explícita
+      caían en el redirect de idioma y terminaban en un 404 en `/es/icon`.
     */
-    "/((?!_next|api|.*\\..*).*)",
+    "/((?!_next|api|icon|apple-icon|.*\\..*).*)",
   ],
 };

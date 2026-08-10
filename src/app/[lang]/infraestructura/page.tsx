@@ -11,7 +11,7 @@ import {
   serverSpec,
   topology,
 } from "@/content/infra";
-import { site } from "@/content/site";
+import { ogImageUrl, site } from "@/content/site";
 import { isLocale, locales, type Locale } from "@/lib/i18n";
 
 export function generateStaticParams() {
@@ -24,13 +24,16 @@ export async function generateMetadata({
   const { lang } = await params;
   if (!isLocale(lang)) return {};
 
+  const pageTitle = lang === "es" ? "Infraestructura" : "Infrastructure";
   const description =
     lang === "es"
       ? "Cómo está armado el servidor donde corren mis aplicaciones: arquitectura, decisiones de seguridad y respaldos, con su porqué."
       : "How the server running my applications is put together: architecture, security and backup decisions, and the reasoning behind them.";
+  const title = `${pageTitle} — ${site.name}`;
+  const image = ogImageUrl(site.name, pageTitle);
 
   return {
-    title: lang === "es" ? "Infraestructura" : "Infrastructure",
+    title: pageTitle,
     description,
     alternates: {
       canonical: `/${lang}/infraestructura`,
@@ -41,9 +44,16 @@ export async function generateMetadata({
     },
     openGraph: {
       type: "article",
-      title: `${lang === "es" ? "Infraestructura" : "Infrastructure"} — ${site.name}`,
+      title,
       description,
       url: `${site.url}/${lang}/infraestructura`,
+      images: [{ url: image, width: 1200, height: 630, alt: pageTitle }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image],
     },
   };
 }

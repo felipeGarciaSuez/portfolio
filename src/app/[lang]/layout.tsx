@@ -1,8 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { notFound } from "next/navigation";
 import { getDictionary } from "@/content/dictionaries";
-import { site } from "@/content/site";
+import { ogImageUrl, site } from "@/content/site";
 import { isLocale, locales, type Locale } from "@/lib/i18n";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -36,6 +36,8 @@ export async function generateMetadata({
       ? `${site.role.es} con más de 4 años de experiencia. Construyo productos completos y los sostengo en producción, en un servidor propio.`
       : `${site.role.en} with 4+ years of experience. I build complete products and keep them running in production, on a server of my own.`;
 
+  const image = ogImageUrl(site.role[lang], site.tagline[lang]);
+
   return {
     metadataBase: new URL(site.url),
     title: {
@@ -43,6 +45,11 @@ export async function generateMetadata({
       template: `%s — ${site.name}`,
     },
     description,
+    applicationName: site.name,
+    keywords:
+      lang === "es"
+        ? ["Backend Python Developer", "Django", "PostgreSQL", "Docker", "Rosario", "Argentina"]
+        : ["Backend Python Developer", "Django", "PostgreSQL", "Docker", "Rosario", "Argentina", "remote"],
     alternates: {
       canonical: `/${lang}`,
       languages: {
@@ -57,15 +64,24 @@ export async function generateMetadata({
       siteName: site.name,
       title: `${site.name} — ${site.role[lang]}`,
       description,
+      images: [{ url: image, width: 1200, height: 630, alt: site.tagline[lang] }],
     },
     twitter: {
       card: "summary_large_image",
       title: `${site.name} — ${site.role[lang]}`,
       description,
+      images: [image],
     },
     robots: { index: true, follow: true },
   };
 }
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#0b0f14",
+  colorScheme: "dark",
+};
 
 export default async function LangLayout({
   children,

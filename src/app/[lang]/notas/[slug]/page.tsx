@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRightIcon } from "@/components/icons";
+import { JsonLd } from "@/components/json-ld";
 import { getDictionary } from "@/content/dictionaries";
 import {
   formatNoteDate,
@@ -8,7 +9,7 @@ import {
   getNoteContent,
   notes,
 } from "@/content/notes";
-import { site } from "@/content/site";
+import { ogImageUrl, site } from "@/content/site";
 import { isLocale, locales, type Locale } from "@/lib/i18n";
 
 export function generateStaticParams() {
@@ -25,6 +26,9 @@ export async function generateMetadata({
 
   const note = getNote(slug);
   if (!note) return {};
+
+  const dict = getDictionary(lang);
+  const image = ogImageUrl(dict.notes.title, note.title[lang]);
 
   return {
     title: note.title[lang],
@@ -43,6 +47,13 @@ export async function generateMetadata({
       title: note.title[lang],
       description: note.summary[lang],
       url: `${site.url}/${lang}/notas/${slug}`,
+      images: [{ url: image, width: 1200, height: 630, alt: note.title[lang] }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: note.title[lang],
+      description: note.summary[lang],
+      images: [image],
     },
   };
 }
@@ -64,6 +75,24 @@ export default async function NotePage({
 
   return (
     <article className="mx-auto max-w-3xl px-5 pb-(--spacing-section) pt-28 sm:px-8">
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "TechArticle",
+          headline: note.title[locale],
+          description: note.summary[locale],
+          datePublished: note.date,
+          dateModified: note.date,
+          keywords: note.tags.join(", "),
+          url: `${site.url}/${locale}/notas/${slug}`,
+          author: {
+            "@type": "Person",
+            name: site.name,
+            url: site.url,
+          },
+        }}
+      />
+
       <Link
         href={`/${locale}/notas`}
         className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-ink-3 transition-colors hover:text-accent"

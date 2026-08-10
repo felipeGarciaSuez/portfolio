@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArchitectureDiagram } from "@/components/architecture-diagram";
 import { ArrowRightIcon } from "@/components/icons";
 import { Hero } from "@/components/hero";
+import { JsonLd } from "@/components/json-ld";
 import { pillars, topology } from "@/content/infra";
 import { formatNoteDate, sortedNotes } from "@/content/notes";
 import { DevelopmentCard, ProductionCard } from "@/components/project-card";
@@ -22,6 +23,33 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
 
   return (
     <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Person",
+          name: site.name,
+          jobTitle: site.role[locale],
+          description: site.tagline[locale],
+          url: `${site.url}/${locale}`,
+          email: `mailto:${site.email}`,
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: "Rosario",
+            addressRegion: "Santa Fe",
+            addressCountry: "AR",
+          },
+          knowsAbout: [
+            "Python",
+            "Django",
+            "PostgreSQL",
+            "Docker",
+            "TypeScript",
+            "React",
+          ],
+          sameAs: [site.github, site.linkedin],
+        }}
+      />
+
       <Hero lang={locale} dict={dict} />
 
       {/* ---------------- Sobre mí ---------------- */}
