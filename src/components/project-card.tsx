@@ -5,6 +5,7 @@ import { projectMedia } from "@/content/media";
 import type { Project } from "@/content/projects";
 import type { Locale } from "@/lib/i18n";
 import { ArrowRightIcon, ExternalIcon } from "./icons";
+import { VideoLoop } from "./video-loop";
 
 /**
  * Que un proyecto esté en producción se nota en la estructura, no solo en
@@ -162,7 +163,7 @@ function MediaSlot({ project, lang }: { project: Project; lang: Locale }) {
 
   return (
     <div className="flex h-full min-h-56 items-center justify-center border-b border-line bg-bg/60 p-6 lg:border-b-0 lg:border-l">
-      {media ? (
+      {media?.kind === "image" ? (
         <div
           className={
             isPhone
@@ -177,6 +178,15 @@ function MediaSlot({ project, lang }: { project: Project; lang: Locale }) {
             placeholder="blur"
             className="h-auto w-full"
           />
+        </div>
+      ) : media?.kind === "video" ? (
+        <div className="w-full max-w-md overflow-hidden rounded-lg border border-line-strong shadow-xl shadow-black/40">
+          <VideoLoop
+            src={media.src}
+            poster={media.poster}
+            className="h-auto w-full"
+          />
+          <span className="sr-only">{media.alt[lang]}</span>
         </div>
       ) : (
         <div
