@@ -6,6 +6,7 @@ import { ogImageUrl, site } from "@/content/site";
 import { isLocale, locales, type Locale } from "@/lib/i18n";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { MobileTabBar } from "@/components/mobile-tab-bar";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -99,7 +100,7 @@ export default async function LangLayout({
       className={`${geistSans.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
-      <body className="min-h-dvh bg-bg text-ink antialiased">
+      <body className="min-h-dvh bg-bg text-ink antialiased pb-14 md:pb-0">
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-accent focus:px-4 focus:py-2 focus:text-bg focus:font-medium"
@@ -109,6 +110,7 @@ export default async function LangLayout({
         <SiteHeader lang={locale} dict={dict} />
         <main id="main">{children}</main>
         <SiteFooter dict={dict} />
+        <MobileTabBar lang={locale} dict={dict} />
       </body>
     </html>
   );

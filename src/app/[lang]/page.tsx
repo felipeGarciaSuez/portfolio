@@ -320,11 +320,15 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section
-      id={id}
-      className="mx-auto max-w-6xl scroll-mt-20 px-5 py-(--spacing-section) sm:px-8"
-    >
-      <div className="mb-10 border-b border-line pb-5">
+    <section className="mx-auto max-w-6xl px-5 py-(--spacing-section) sm:px-8">
+      {/*
+        El id y el scroll-mt van en este div, no en la section: la section
+        tiene mucho padding-top propio (--spacing-section, hasta 144px), y
+        si el ancla apunta ahí, un clic en "Proyectos" aterriza en una
+        pantalla casi vacía antes de que aparezca el título. Apuntando acá
+        el salto llega directo al encabezado.
+      */}
+      <div id={id} className="mb-10 scroll-mt-24 border-b border-line pb-5">
         <h2 className="text-3xl font-semibold tracking-[-0.03em]">{title}</h2>
         {lede && <p className="mt-2 max-w-2xl text-ink-2">{lede}</p>}
       </div>

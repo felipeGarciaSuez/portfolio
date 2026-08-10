@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 import type { Dictionary } from "@/content/dictionaries";
 import { switchLocalePath, type Locale } from "@/lib/i18n";
 
 /**
- * En el hero la barra no existe: nada compite con el primer impacto.
- * Aparece recién cuando el usuario pasó de largo la primera pantalla.
+ * Visible desde el primer scroll, no oculto hasta pasar el hero: en mobile
+ * era además la única vía a la navegación, así que ocultarla dejaba al
+ * usuario sin forma de llegar a Proyectos salvo el CTA del hero.
  */
 export function SiteHeader({
   lang,
@@ -18,14 +18,6 @@ export function SiteHeader({
   dict: Dictionary;
 }) {
   const pathname = usePathname();
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setVisible(window.scrollY > window.innerHeight * 0.7);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   const links = [
     { href: `/${lang}#proyectos`, label: dict.nav.projects },
@@ -39,13 +31,7 @@ export function SiteHeader({
   const other: Locale = lang === "es" ? "en" : "es";
 
   return (
-    <header
-      className={`fixed inset-x-0 top-0 z-40 border-b border-line/70 bg-bg/85 backdrop-blur transition-all duration-300 ${
-        visible
-          ? "translate-y-0 opacity-100"
-          : "pointer-events-none -translate-y-full opacity-0"
-      }`}
-    >
+    <header className="fixed inset-x-0 top-0 z-40 border-b border-line/70 bg-bg/85 backdrop-blur">
       <nav className="mx-auto flex max-w-6xl items-center gap-6 px-5 py-3 sm:px-8">
         <Link
           href={`/${lang}`}
