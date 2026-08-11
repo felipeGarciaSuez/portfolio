@@ -62,10 +62,13 @@ export const roles: Role[] = [
   {
     id: "globalbitz",
     company: { es: "Globalbitz", en: "Globalbitz" },
-    companyNote: { es: "España · remoto", en: "Spain · remote" },
+    companyNote: {
+      es: "España · remoto · personalizaciones de Allplan",
+      en: "Spain · remote · Allplan customisations",
+    },
     title: {
-      es: "Desarrollador Full Stack (freelance)",
-      en: "Full Stack Developer (freelance)",
+      es: "Desarrollador Python (freelance)",
+      en: "Python Developer (freelance)",
     },
     location: { es: "Remoto", en: "Remote" },
     start: "2025-07",
@@ -73,24 +76,20 @@ export const roles: Role[] = [
     startLabel: { es: "jul 2025", en: "Jul 2025" },
     endLabel: { es: "nov 2025", en: "Nov 2025" },
     headline: {
-      es: "Entregué aplicaciones web de punta a punta con un equipo internacional, trabajando en inglés y con ejecución autónoma.",
-      en: "Delivered web applications end to end with an international team, working in English with autonomous execution.",
+      es: "Escribí funciones en Python con PythonParts, la API de scripting de Allplan, para generar estructuras 3D paramétricas dentro del sistema a partir de medidas y parámetros de configuración.",
+      en: "I wrote Python functions using PythonParts, Allplan's scripting API, to generate parametric 3D structures inside the system from input measurements and configuration parameters.",
     },
     details: {
       es: [
-        "React y TypeScript en el frontend, Node.js en el backend, desde el diseño de componentes hasta la puesta en producción.",
-        "APIs REST, lógica de negocio del lado del servidor y manejo de estado y datos entre cliente y servidor.",
-        "Tipado estático como herramienta de mantenibilidad: menos errores en tiempo de ejecución a medida que el proyecto crecía.",
-        "Docker para contenerización, desarrollo local y despliegues consistentes entre entornos.",
+        "Funciones paramétricas en Python con PythonParts (la API de scripting de Allplan) que generan estructuras 3D dentro del sistema a partir de medidas y parámetros de configuración.",
+        "Trabajo remoto para una empresa española especializada en personalizaciones de Allplan, software BIM/CAD para arquitectura e ingeniería.",
       ],
       en: [
-        "React and TypeScript on the frontend, Node.js on the backend, from component design through to production.",
-        "REST APIs, server-side business logic, and state and data handling between client and server.",
-        "Static typing as a maintainability tool: fewer runtime errors as the project grew.",
-        "Docker for containerisation, local development and consistent deploys across environments.",
+        "Parametric Python functions using PythonParts (Allplan's scripting API) that generate 3D structures inside the system from measurements and configuration parameters.",
+        "Remote work for a Spanish company specialising in Allplan customisations, BIM/CAD software for architecture and engineering.",
       ],
     },
-    stack: ["TypeScript", "React", "Node.js", "Express", "Docker"],
+    stack: ["Python", "Allplan", "PythonParts"],
   },
   {
     id: "solvo",

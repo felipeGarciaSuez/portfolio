@@ -27,7 +27,11 @@ export const stack: TechGroup[] = [
       {
         name: "Python",
         core: true,
-        evidence: { es: "Adhoc, Solvo, Caudal, Gardenia", en: "Adhoc, Solvo, Caudal, Gardenia" },
+        evidence: { es: "Adhoc, Solvo, Caudal, Gardenia, Globalbitz", en: "Adhoc, Solvo, Caudal, Gardenia, Globalbitz" },
+      },
+      {
+        name: "Allplan · PythonParts",
+        evidence: { es: "Globalbitz · geometría 3D paramétrica", en: "Globalbitz · parametric 3D geometry" },
       },
       {
         name: "Django",
@@ -45,11 +49,11 @@ export const stack: TechGroup[] = [
       },
       {
         name: "Node.js · Express",
-        evidence: { es: "Globalbitz, freelance", en: "Globalbitz, freelance" },
+        evidence: { es: "Freelance", en: "Freelance" },
       },
       {
         name: "APIs REST",
-        evidence: { es: "Globalbitz, CuadrosJaci", en: "Globalbitz, CuadrosJaci" },
+        evidence: { es: "CuadrosJaci", en: "CuadrosJaci" },
       },
       {
         name: "gunicorn",
@@ -87,7 +91,7 @@ export const stack: TechGroup[] = [
       {
         name: "Docker",
         core: true,
-        evidence: { es: "Solvo, Globalbitz, y las tres apps propias", en: "Solvo, Globalbitz, and all three of my own apps" },
+        evidence: { es: "Solvo y las tres apps propias", en: "Solvo and all three of my own apps" },
       },
       {
         name: "Linux",
@@ -115,12 +119,12 @@ export const stack: TechGroup[] = [
       {
         name: "TypeScript",
         core: true,
-        evidence: { es: "Globalbitz, CoProduce, este sitio", en: "Globalbitz, CoProduce, this site" },
+        evidence: { es: "CoProduce, este sitio", en: "CoProduce, this site" },
       },
       {
         name: "React",
         core: true,
-        evidence: { es: "Globalbitz, CuadrosJaci, freelance", en: "Globalbitz, CuadrosJaci, freelance" },
+        evidence: { es: "CuadrosJaci, freelance", en: "CuadrosJaci, freelance" },
       },
       {
         name: "Next.js",
@@ -159,7 +163,7 @@ export const stack: TechGroup[] = [
       },
       {
         name: "Agile · Scrum",
-        evidence: { es: "Adhoc, Globalbitz", en: "Adhoc, Globalbitz" },
+        evidence: { es: "Adhoc", en: "Adhoc" },
       },
     ],
   },
